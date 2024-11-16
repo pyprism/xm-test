@@ -1,0 +1,24 @@
+FROM golang:1.23.3-alpine AS builder
+
+WORKDIR /app
+
+COPY . .
+
+RUN go mod download
+
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix nocgo -o main
+
+# Minimal image for running the application
+FROM alpine as final
+
+WORKDIR /app
+
+COPY --from=builder /app/main /app/main
+
+RUN apk add --no-cache tini tzdata
+
+ENV TZ=Asia/Dhaka
+ENV GIN_MODE=release
+
+ENTRYPOINT ["/sbin/tini", "--"]
+CMD ["/app/main"]

@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:17.1-alpine
+    container_name: company_service_db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "127.0.0.1:${DB_PORT}:${DB_PORT}"
+    networks:
+      - company_service
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+
+  company_service:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    container_name: company_service
+    env_file:
+      - .env
+    depends_on:
+      - db
+    networks:
+      - company_service
+    ports:
+      - "127.0.0.1${SERVER_PORT}${SERVER_PORT}"
+    restart: always
+
+networks:
+  company_service:
+    driver: bridge
